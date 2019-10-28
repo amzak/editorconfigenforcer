@@ -1,0 +1,23 @@
+version: 1.0.{build}
+image: Visual Studio 2019
+
+install:
+  - ps: (new-object Net.WebClient).DownloadString("https://raw.github.com/madskristensen/ExtensionScripts/master/AppVeyor/vsix.ps1") | iex
+
+assembly_info:
+  patch: true
+  file: '**\AssemblyInfo.*'
+  assembly_version: '{version}'
+  assembly_file_version: '{version}'
+  assembly_informational_version: '{version}'
+
+before_build:
+  - nuget restore src\editorconfigenforcer.sln
+  - ps: Vsix-IncrementVsixVersion | Vsix-UpdateBuildVersion
+
+build_script:
+  - msbuild /p:configuration=Release /p:DeployExtension=false /p:ZipPackageCompressionLevel=normal /v:m src\editorconfigenforcer.sln
+  
+artifacts:
+  - path: build\bin\EditorConfigEnforcer.vsix
+    name: EditorConfigEnforcer
